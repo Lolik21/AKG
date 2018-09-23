@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
 using SDL2;
 
 namespace SDL_Lab1
@@ -14,6 +9,7 @@ namespace SDL_Lab1
     {
         private const int WindowHeight = 720;
         private const int WindowWidth = 1280;
+        private static double _scale = 1;
         private static IntPtr _window;
         private static IntPtr _renderer;
         /// <summary>
@@ -24,7 +20,7 @@ namespace SDL_Lab1
         {
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) >= 0)
             {
-                var window = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED,
+                var window = SDL.SDL_CreateWindow("AKG Lab1", SDL.SDL_WINDOWPOS_UNDEFINED,
                     SDL.SDL_WINDOWPOS_UNDEFINED, WindowWidth, WindowHeight,
                     SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN | SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE);
                 _window = window;
@@ -53,6 +49,16 @@ namespace SDL_Lab1
             {
                 case SDL.SDL_EventType.SDL_QUIT:
                     return true;
+                case SDL.SDL_EventType.SDL_MOUSEWHEEL:
+                    if (sdlEvent.wheel.y > 0)
+                    {
+                        _scale *= 2;
+                    }
+                    else
+                    {
+                        _scale /= 2;
+                    }
+                    break;
             }
 
             return false;
@@ -111,8 +117,8 @@ namespace SDL_Lab1
         private static void CalculateXY(double angle, int a, out int x, out int y)
         {
             var tangents = Math.Tan(angle);
-            x = (int)(a * Math.Pow(tangents, 2) / (1 + Math.Pow(tangents, 2)));
-            y = (int)(a * Math.Pow(tangents, 3) / (1 + Math.Pow(tangents, 2)));
+            x = (int) (a*Math.Pow(tangents, 2)/(1 + Math.Pow(tangents, 2))*_scale);
+            y = (int) (a*Math.Pow(tangents, 3)/(1 + Math.Pow(tangents, 2))*_scale);
         }
     }
 }
