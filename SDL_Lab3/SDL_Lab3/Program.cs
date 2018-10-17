@@ -9,6 +9,9 @@ namespace SDL_Lab1
 {
     static class Program
     {
+        const int CircleRadius = 150;
+        const int CountOfCircleQuarters = 1000;
+
         private const int WindowHeight = 720;
         private const int WindowWidth = 1280;
 
@@ -23,7 +26,7 @@ namespace SDL_Lab1
         private static List<SDL.SDL_Point> _rectangle;
         private static List<SDL.SDL_Point> _circle;
 
-        public static SDL.SDL_Point PressedPoint { get; private set; }
+        public static List<SDL.SDL_Point> PressedFigure { get; private set; }
 
         [STAThread]
         static void Main()
@@ -63,22 +66,27 @@ namespace SDL_Lab1
                     if (sdlEvent.button.button == SDL.SDL_BUTTON_LEFT)
                     {
                         var point = new SDL.SDL_Point { x = sdlEvent.button.x, y = sdlEvent.button.y };
-                        MapToPoint(point.x, point.y, ref point);
+                        MapMousePoint(point.x, point.y, ref point);
+                        PressedFigure = FindFigureOnMousePoint(point);
                         PressedPoint = point;
                     }
                     break;
+                case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
+                    if (sdlEvent.button.button == SDL.SDL_BUTTON_LEFT)
+                    {
+                        PressedFigure = null;
+                    }
+                    break;
                 case SDL.SDL_EventType.SDL_MOUSEMOTION:
-                    if (sdlEvent.button.button == SDL.SDL_BUTTON_LEFT
-                        && sdlEvent.button.state == SDL.SDL_PRESSED)
+                    if (PressedFigure != null)
                     {
                         var currentPoint = new SDL.SDL_Point
                         {
                             x = sdlEvent.button.x,
                             y = sdlEvent.button.y
                         };
-                        MapToPoint(currentPoint.x, currentPoint.y, ref currentPoint);
-                        var points = FindFigureOnMousePoint(currentPoint);
-                        ApplyShift(points, currentPoint, PressedPoint);
+                        MapMousePoint(currentPoint.x, currentPoint.y, ref currentPoint);
+                        ApplyShift(PressedFigure, currentPoint, PressedPoint);
                     }
                     break;
             }
@@ -86,47 +94,101 @@ namespace SDL_Lab1
             return false;
         }
 
+        public static SDL.SDL_Point PressedPoint { get; set; }
+
         private static void ApplyShift(List<SDL.SDL_Point> points,
             SDL.SDL_Point currentPoint, SDL.SDL_Point pressedPoint)
         {
+            var dx = pressedPoint.x - currentPoint.x;
+            var dy = pressedPoint.y - currentPoint.y;
+            for (int i = 0; i < points.Count; i++)
+            {
+                points[i] = new SDL.SDL_Point{ x = points[i].x - dx, y = points[i].y - dy};
+            }
 
+            PressedPoint = currentPoint;
         }
 
         private static List<SDL.SDL_Point> FindFigureOnMousePoint(SDL.SDL_Point mousePoint)
         {
+            if (IsInFigure(_rectangle, mousePoint))
+            {
+                return _rectangle;
+            }
+
+            if (IsInFigure(_circle, mousePoint))
+            {
+                return _circle;
+            }
+
+            if (IsInFigure(_mainWindow, mousePoint))
+            {
+                return _mainWindow;
+            }
 
             return null;
+        }
+
+        private static bool IsInFigure(List<SDL.SDL_Point> figure, SDL.SDL_Point mousePoint)
+        {
+            var length = figure.Count;
+            if (PointOnLeftOrRightSide(figure[0], figure[1], mousePoint) < 0 ||
+                PointOnLeftOrRightSide(figure[0], figure[length-1], mousePoint) > 0)
+                return false;
+            var p = 1;
+            var r = length - 1;
+            while (r-p > 1)
+            {
+                var q = (p + r) / 2;
+                if (PointOnLeftOrRightSide(figure[0], figure[q], mousePoint) < 0)
+                {
+                    r = q;
+                }
+                else
+                {
+                    p = q;
+                }
+            }
+
+            return !IsLinesIntercept(figure[0], mousePoint, figure[p], figure[r]);
         }
 
         #region FindFigureHelpers
         /// <summary>
         /// https://habr.com/post/144571/ 
         /// </summary>
-        private static int IsPointOnLeftOrRightSide(SDL.SDL_Point pointA,
+        private static int PointOnLeftOrRightSide(SDL.SDL_Point pointA,
             SDL.SDL_Point pointB, SDL.SDL_Point pointC)
         {
             // we use formula (Ax*By - Ay*Bx)Z according to
-            // Z(0,0,1) - is z coordinate (x,y,z). By the value of z coord (>0 or <=0)
+            // Z(0,0,1) - is z coordinate (x,y,z). By the value of z
             // simply if Z<0 it is right rotation from AB to BC vector
-            // Z>=0 it is left retation from AB to BC vector
-            // Using this approch helps to determine case when AB crossing BC or not
+            // Z>=0 it is left rotation from AB to BC vector
+            // Using this approach helps to determine case when Line1 crossing Line2 or not
 
-            //First we need to initialize vectors AB and BC coordinates
+            // First we need to initialize vectors AB and BC coordinates
             // For AB : vectorCoord.xCoord = b.xCoord - a.xCoord 
 
-            var ABVectorXCoord = pointB.x - pointA.x;
-            var ABVectorYCoord = pointB.y - pointB.y;
-            var BCVectorXCoord = pointC.x - pointB.x;
-            var BCVectorYCoord = pointC.y - pointC.y;
+            var ABVectorXCord = pointB.x - pointA.x;
+            var ABVectorYCord = pointB.y - pointA.y;
+            var BCVectorXCord = pointC.x - pointB.x;
+            var BCVectorYCord = pointC.y - pointB.y;
 
             //Second - use formula)
-            return (ABVectorXCoord * BCVectorYCoord) - (ABVectorYCoord * BCVectorXCoord);
+            return (ABVectorXCord * BCVectorYCord) - (ABVectorYCord * BCVectorXCord);
         }
 
-        private static bool IsLinesIntersept(SDL.SDL_Point line1XCoord, SDL.SDL_Point line1YCoord,
-                                             SDL.SDL_Point line2XCoord, SDL.SDL_Point line2YCoord)
+        /// <summary>
+        /// This method will checks whatever AB line intercept CD line
+        /// </summary>
+        private static bool IsLinesIntercept(SDL.SDL_Point A, SDL.SDL_Point B,
+                                             SDL.SDL_Point C, SDL.SDL_Point D)
         {
-
+            return (double)PointOnLeftOrRightSide(A, B, C) *
+                   PointOnLeftOrRightSide(A, B, D) <= 0
+                   &&
+                   (double)PointOnLeftOrRightSide(C, D, A) *
+                   PointOnLeftOrRightSide(C, D, B) < 0;
         }
         #endregion   
 
@@ -145,7 +207,7 @@ namespace SDL_Lab1
             SDL.SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
             DrawRectangle(renderer, _mainWindow);
             DrawRectangle(renderer, _rectangle);
-            DrawCircle(renderer, _circle);
+            DrawCirclePoints(renderer, _circle);
         }
 
         private static void InitFigures(out List<SDL.SDL_Point> circle,
@@ -154,45 +216,44 @@ namespace SDL_Lab1
         {
             //Init Circle 
             circle = new List<SDL.SDL_Point>();
+            circle = GetCircleCurvePoints();
 
             //Init main Rectangle
             var size = WindowWidth / 3;
             mainWindow = new List<SDL.SDL_Point>
             {
                 new SDL.SDL_Point{ x = size, y = size - 100},
-                new SDL.SDL_Point{ x = size, y = -size + 100},
+                new SDL.SDL_Point{ x = -size, y = size - 100},
                 new SDL.SDL_Point{ x = -size, y = -size + 100},
-                new SDL.SDL_Point{ x = -size, y = size - 100}
+                new SDL.SDL_Point{ x = size, y = -size + 100},              
             };
-            mainWindow.Add(mainWindow.FirstOrDefault());
 
             //Init Rectangle
             rectangle = new List<SDL.SDL_Point>
             {
                 new SDL.SDL_Point{ x = 500, y = 75 },
-                new SDL.SDL_Point{ x = 500, y = -75 },
+                new SDL.SDL_Point{ x = -500, y = 75},
                 new SDL.SDL_Point{ x = -500, y = -75 },
-                new SDL.SDL_Point{ x = -500, y = 75}
+                new SDL.SDL_Point{ x = 500, y = -75 }                          
             };
-            rectangle.Add(rectangle.FirstOrDefault());
         }
 
-        private static void DrawCircle(IntPtr renderer, List<SDL.SDL_Point> circle)
+        private static void DrawCirclePoints(IntPtr renderer, List<SDL.SDL_Point> circle)
         {
-            var points = DrawCircleCurve(circle);
+            var points = new List<SDL.SDL_Point>(circle);
             points.Add(points.FirstOrDefault());
             SDL.SDL_RenderDrawLines(renderer, MapListOfPoints(points).ToArray(), points.Count);
         }
 
-        private static List<SDL.SDL_Point> DrawCircleCurve(List<SDL.SDL_Point> circle)
-        {
-            const int Radius = 150;
-            const int CountOfQuarters = 1000;
+       
+
+        private static List<SDL.SDL_Point> GetCircleCurvePoints()
+        {           
             var points = new List<SDL.SDL_Point>();
-            for (var i = 0; i < CountOfQuarters; i++)
+            for (var i = 0; i < CountOfCircleQuarters; i++)
             {
-                var xi = (int)(Radius * Math.Cos(-Math.PI / 2 + 2 * Math.PI * i / CountOfQuarters));
-                var yi = (int)(Radius * Math.Sin(-Math.PI / 2 + 2 * Math.PI * i / CountOfQuarters));
+                var xi = (int)(CircleRadius * Math.Cos(-Math.PI / 2 + 2 * Math.PI * i / CountOfCircleQuarters));
+                var yi = (int)(CircleRadius * Math.Sin(-Math.PI / 2 + 2 * Math.PI * i / CountOfCircleQuarters));
                 points.Add(new SDL.SDL_Point { x = xi, y = yi });
             }
             return points;
@@ -200,7 +261,8 @@ namespace SDL_Lab1
 
         private static void DrawRectangle(IntPtr renderer, List<SDL.SDL_Point> rectangle)
         {
-            var points = MapListOfPoints(rectangle);
+            var points = new List<SDL.SDL_Point>(MapListOfPoints(rectangle));
+            points.Add(points.FirstOrDefault());
             SDL.SDL_RenderDrawLines(renderer, points.ToArray(), points.Count);
         }
 
@@ -230,6 +292,13 @@ namespace SDL_Lab1
             var ty = (int)(x * Math.Sin(_angle) + y * Math.Cos(_angle));
             newPoint.x = centralPoint.x + (int)(tx * _scale) + _transX;
             newPoint.y = centralPoint.y - (int)(ty * _scale) + _transY;
+        }
+
+        private static void MapMousePoint(int x, int y, ref SDL.SDL_Point mousePoint)
+        {
+            FindCenter(out var centralPoint);
+            mousePoint.x = x - centralPoint.x;
+            mousePoint.y = centralPoint.y - y;
         }
 
         private static List<SDL.SDL_Point> MapListOfPoints(List<SDL.SDL_Point> points)
