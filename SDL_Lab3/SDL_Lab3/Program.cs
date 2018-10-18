@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -10,7 +11,7 @@ namespace SDL_Lab1
     static class Program
     {
         const int CircleRadius = 150;
-        const int CountOfCircleQuarters = 1000;
+        const int CountOfCircleQuarters = 100;
 
         private const int WindowHeight = 720;
         private const int WindowWidth = 1280;
@@ -103,7 +104,7 @@ namespace SDL_Lab1
             var dy = pressedPoint.y - currentPoint.y;
             for (int i = 0; i < points.Count; i++)
             {
-                points[i] = new SDL.SDL_Point{ x = points[i].x - dx, y = points[i].y - dy};
+                points[i] = new SDL.SDL_Point { x = points[i].x - dx, y = points[i].y - dy };
             }
 
             PressedPoint = currentPoint;
@@ -133,11 +134,11 @@ namespace SDL_Lab1
         {
             var length = figure.Count;
             if (PointOnLeftOrRightSide(figure[0], figure[1], mousePoint) < 0 ||
-                PointOnLeftOrRightSide(figure[0], figure[length-1], mousePoint) > 0)
+                PointOnLeftOrRightSide(figure[0], figure[length - 1], mousePoint) > 0)
                 return false;
             var p = 1;
             var r = length - 1;
-            while (r-p > 1)
+            while (r - p > 1)
             {
                 var q = (p + r) / 2;
                 if (PointOnLeftOrRightSide(figure[0], figure[q], mousePoint) < 0)
@@ -205,7 +206,7 @@ namespace SDL_Lab1
         private static void DrawFigures(IntPtr renderer)
         {
             SDL.SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-            DrawRectangle(renderer, _mainWindow);
+            //DrawRectangle(renderer, _mainWindow);
             DrawRectangle(renderer, _rectangle);
             DrawCirclePoints(renderer, _circle);
         }
@@ -225,7 +226,7 @@ namespace SDL_Lab1
                 new SDL.SDL_Point{ x = size, y = size - 100},
                 new SDL.SDL_Point{ x = -size, y = size - 100},
                 new SDL.SDL_Point{ x = -size, y = -size + 100},
-                new SDL.SDL_Point{ x = size, y = -size + 100},              
+                new SDL.SDL_Point{ x = size, y = -size + 100},
             };
 
             //Init Rectangle
@@ -234,7 +235,7 @@ namespace SDL_Lab1
                 new SDL.SDL_Point{ x = 500, y = 75 },
                 new SDL.SDL_Point{ x = -500, y = 75},
                 new SDL.SDL_Point{ x = -500, y = -75 },
-                new SDL.SDL_Point{ x = 500, y = -75 }                          
+                new SDL.SDL_Point{ x = 500, y = -75 }
             };
         }
 
@@ -245,10 +246,10 @@ namespace SDL_Lab1
             SDL.SDL_RenderDrawLines(renderer, MapListOfPoints(points).ToArray(), points.Count);
         }
 
-       
+
 
         private static List<SDL.SDL_Point> GetCircleCurvePoints()
-        {           
+        {
             var points = new List<SDL.SDL_Point>();
             for (var i = 0; i < CountOfCircleQuarters; i++)
             {
@@ -263,6 +264,13 @@ namespace SDL_Lab1
         {
             var points = new List<SDL.SDL_Point>(MapListOfPoints(rectangle));
             points.Add(points.FirstOrDefault());
+            for (int i = 0; i < points.Count - 1; i++)
+            {
+                var pointA = points[i];
+                var pointB = points[i + 1];
+                var normVector = new SDL.SDL_Point {x = pointA.y, y = -pointA.x};
+                var vectorAB = 
+            }
             SDL.SDL_RenderDrawLines(renderer, points.ToArray(), points.Count);
         }
 
