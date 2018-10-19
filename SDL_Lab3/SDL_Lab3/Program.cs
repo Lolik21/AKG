@@ -4,14 +4,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using SDL2;
 
 namespace SDL_Lab1
 {
     static class Program
     {
-        const int CircleRadius = 150;
-        const int CountOfCircleQuarters = 100;
+        private static readonly Random Random = new Random(DateTime.Now.Millisecond);
+
+        private const int CircleRadius = 150;
+        private const int CountOfCircleQuarters = 100;
 
         private const int WindowHeight = 720;
         private const int WindowWidth = 1280;
@@ -207,7 +210,7 @@ namespace SDL_Lab1
         {
             SDL.SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
             //DrawRectangle(renderer, _mainWindow);
-            DrawRectangle(renderer, _rectangle);
+            DrawRectangle(renderer, _rectangle, _mainWindow);
             DrawCirclePoints(renderer, _circle);
         }
 
@@ -260,18 +263,93 @@ namespace SDL_Lab1
             return points;
         }
 
-        private static void DrawRectangle(IntPtr renderer, List<SDL.SDL_Point> rectangle)
+        private static void DrawRectangle(IntPtr renderer, List<SDL.SDL_Point> rectangle, List<SDL.SDL_Point> viewWindow)
         {
-            var points = new List<SDL.SDL_Point>(MapListOfPoints(rectangle));
+            var points = new List<SDL.SDL_Point>(rectangle);
+            var viewWindowPoints = new List<SDL.SDL_Point>(viewWindow);
+
+            //Here lines will be like line[0] --- line[1] where line[0] is point
+            var visibleLines = new List<SDL.SDL_Point>();
+            var notVisibleLines = new List<SDL.SDL_Point>();
+
+            //Add last points
             points.Add(points.FirstOrDefault());
+            viewWindowPoints.Add(viewWindowPoints.FirstOrDefault());
+
             for (int i = 0; i < points.Count - 1; i++)
             {
-                var pointA = points[i];
-                var pointB = points[i + 1];
-                var normVector = new SDL.SDL_Point {x = pointA.y, y = -pointA.x};
-                var vectorAB = 
+                FindLineVisiblePoints(visibleLines, notVisibleLines, viewWindowPoints, points[i], points[i + 1]);
             }
+
             SDL.SDL_RenderDrawLines(renderer, points.ToArray(), points.Count);
+        }
+
+        private static void FindLineVisiblePoints(List<SDL.SDL_Point> visibleLines, List<SDL.SDL_Point> notVisibleLines,
+            List<SDL.SDL_Point> viewWindowPoints, SDL.SDL_Point pointA, SDL.SDL_Point pointB)
+        {
+            //This is line that potentially intercepts with view window
+            var vectorAB = new SDL.SDL_Point { x = pointB.x - pointA.x, y = pointB.y - pointA.y };
+            var enteringWindowParameter = 0.0;
+            var exitingWindowParameter = 1.0;
+
+            for (int j = 0; j < viewWindowPoints.Count - 1; j++)
+            {
+
+                var normVector = FindVectorNorm(viewWindowPoints[j], viewWindowPoints[j + 1]);
+                var Fi = viewWindowPoints[j];
+                var tempQiVector = new SDL.SDL_Point { x = pointA.x - Fi.x, y = pointA.y - Fi.y };
+                // (M > 0 then -|>),  (M < 0 then <|-), (M == 0 then ||)
+                var Mi = normVector.x * vectorAB.x + normVector.y * vectorAB.y;
+                var Qi = normVector.x * tempQiVector.x + normVector.y * tempQiVector.y;
+
+                if (Mi == 0)
+                {
+                    if (Qi < 0)
+                    {
+                        continue;
+                    }                
+                }
+                MiIsGreater(Mi, Qi, ref enteringWindowParameter, ref exitingWindowParameter);
+            }
+        }
+
+        private static void MiIsGreater(int Mi, int Qi, ref double enteringWindowParameter, ref double exitingWindowParameter)
+        {
+            var t = (-1) * Qi / (double)Mi;
+            if (Mi > 0)
+            {
+                if (t > 1)
+                {
+                    return;
+                }
+                else
+                {
+                    enteringWindowParameter = Math.Max(enteringWindowParameter, t);
+                }
+            }
+            else
+            {
+                if (t < 0)
+                {
+                    return;
+                }
+                else
+                {
+                    exitingWindowParameter = Math.Min(exitingWindowParameter, t);
+                }
+            }
+        }
+
+        private static SDL.SDL_Point GetPointFromTParameter(SDL.SDL_Point pointA, SDL.SDL_Point pointB)
+        {
+            return new SDL.SDL_Point();
+        }
+
+
+        private static SDL.SDL_Point FindVectorNorm(SDL.SDL_Point pointA, SDL.SDL_Point pointB)
+        {
+            var mainVectorCD = new SDL.SDL_Point { x = pointB.x - pointA.x, y = pointB.y - pointA.y };
+            return new SDL.SDL_Point { x = -mainVectorCD.y, y = mainVectorCD.x };
         }
 
         private static void DrawAxis(IntPtr renderer)
