@@ -12,14 +12,22 @@ namespace SDL_Lab1
         private const int CircleRadius = 150;
         private const int CountOfCircleQuarters = 100;
         private const int DashLength = 5;
+        private const int AnimateTimerMax = 10;
+        private const int MaxFigureSpeed = 5;
+        private const int MinFigureSpeed = 1;
 
         private const int WindowHeight = 720;
         private const int WindowWidth = 1280;
 
-        private static double _scale = 1d;
-        private static double _angle = 0d;
-        private static int _transX = 0;
-        private static int _transY = 0;
+        private static int _dxRectangle;
+        private static int _dyRectangle;
+        private static int _dxCircle;
+        private static int _dyCircle;
+        private static int _animateTimer = AnimateTimerMax;
+        //private static double _scale = 1d;
+        //private static double _angle = 0d;
+        //private static int _transX = 0;
+        //private static int _transY = 0;
         private static IntPtr _window;
         private static IntPtr _renderer;
 
@@ -51,6 +59,10 @@ namespace SDL_Lab1
                         exitApp = SDLWindProc(e);
                     }
                     DrawGreatLine(screenSurface);
+                    _animateTimer--;
+                    if (_animateTimer > 0) continue;
+                    Animate();
+                    _animateTimer = AnimateTimerMax;
                 }
                 SDL.SDL_DestroyWindow(window);
                 SDL.SDL_Quit();
@@ -218,6 +230,8 @@ namespace SDL_Lab1
             //Init Circle 
             circle = new List<SDL.SDL_Point>();
             circle = GetCircleCurvePoints();
+            _dxCircle = Random.Next(MinFigureSpeed, MaxFigureSpeed);
+            _dyCircle = Random.Next(MinFigureSpeed, MaxFigureSpeed);
 
             //Init main Rectangle
             var size = WindowWidth / 3;
@@ -237,6 +251,8 @@ namespace SDL_Lab1
                 new SDL.SDL_Point{ x = -500, y = -75 },
                 new SDL.SDL_Point{ x = 500, y = -75 }
             };
+            _dxRectangle = Random.Next(MinFigureSpeed, MaxFigureSpeed);
+            _dyRectangle = Random.Next(MinFigureSpeed, MaxFigureSpeed);
         }
 
         private static void DrawCirclePoints(IntPtr renderer, List<SDL.SDL_Point> circle)
@@ -246,7 +262,62 @@ namespace SDL_Lab1
             SDL.SDL_RenderDrawLines(renderer, MapListOfPoints(points).ToArray(), points.Count);
         }
 
+        private static void Animate()
+        {
+            FindCenter(out var center);
+            for (var i = 0; i < _circle.Count; i++)
+            {
+                _circle[i] = new SDL.SDL_Point
+                {
+                    x = _circle[i].x + _dxCircle,
+                    y = _circle[i].y + _dyCircle
+                };
+            }
 
+            for (var i = 0; i < _circle.Count; i++)
+            {
+                if ((_circle[i].x >= center.x && _dxCircle>=0) || 
+                    (_circle[i].x <= -center.x && _dxCircle<=0))
+                {
+                    _dxCircle *= -1;
+                    break;
+                }
+                
+
+                if ((_circle[i].y >= center.y && _dyCircle>=0) || 
+                    (_circle[i].y <= -center.y && _dyCircle <= 0))
+                {
+                    _dyCircle *= -1;
+                    break;
+                }
+            }
+
+            for (var i = 0; i < _rectangle.Count; i++)
+            {
+                _rectangle[i] = new SDL.SDL_Point
+                {
+                    x = _rectangle[i].x + _dxRectangle,
+                    y = _rectangle[i].y + _dyRectangle
+                };
+            }
+
+            for (var i = 0; i < _rectangle.Count; i++)
+            {
+                if ((_rectangle[i].x >= center.x && _dxRectangle >= 0) || 
+                    (_rectangle[i].x <= -center.x && _dxRectangle <= 0))
+                {
+                    _dxRectangle *= -1;
+                    break;
+                }
+
+                if ((_rectangle[i].y >= center.y && _dyRectangle >= 0) || 
+                    (_rectangle[i].y <= -center.y && _dyRectangle <= 0))
+                {
+                    _dyRectangle *= -1;
+                    break;
+                }
+            }
+        }
 
         private static List<SDL.SDL_Point> GetCircleCurvePoints()
         {
@@ -416,10 +487,12 @@ namespace SDL_Lab1
         private static void MapToPoint(int x, int y, ref SDL.SDL_Point newPoint)
         {
             FindCenter(out var centralPoint);
-            var tx = (int)(x * Math.Cos(_angle) - y * Math.Sin(_angle));
-            var ty = (int)(x * Math.Sin(_angle) + y * Math.Cos(_angle));
-            newPoint.x = centralPoint.x + (int)(tx * _scale) + _transX;
-            newPoint.y = centralPoint.y - (int)(ty * _scale) + _transY;
+            //var tx = (int)(x * Math.Cos(_angle) - y * Math.Sin(_angle));
+            //var ty = (int)(x * Math.Sin(_angle) + y * Math.Cos(_angle));
+            //newPoint.x = centralPoint.x + (int)(tx * _scale) + _transX;
+            //newPoint.y = centralPoint.y - (int)(ty * _scale) + _transY;
+            newPoint.x = centralPoint.x + x;
+            newPoint.y = centralPoint.y - y;
         }
 
         private static void MapMousePoint(int x, int y, ref SDL.SDL_Point mousePoint)
