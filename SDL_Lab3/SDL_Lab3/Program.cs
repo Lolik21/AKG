@@ -1,10 +1,6 @@
 ﻿using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
 using SDL2;
 
 namespace SDL_Lab1
@@ -281,7 +277,7 @@ namespace SDL_Lab1
                 FindLineVisiblePoints(visibleLines, notVisibleLines, viewWindowPoints, points[i], points[i + 1]);
             }
 
-            SDL.SDL_RenderDrawLines(renderer, points.ToArray(), points.Count);
+            SDL.SDL_RenderDrawLines(renderer, MapListOfPoints(points).ToArray(), points.Count);
         }
 
         private static void FindLineVisiblePoints(List<SDL.SDL_Point> visibleLines, List<SDL.SDL_Point> notVisibleLines,
