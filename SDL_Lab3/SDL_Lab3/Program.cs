@@ -11,6 +11,7 @@ namespace SDL_Lab1
 
         private const int CircleRadius = 150;
         private const int CountOfCircleQuarters = 100;
+        private const int DashLength = 5;
 
         private const int WindowHeight = 720;
         private const int WindowWidth = 1280;
@@ -278,6 +279,51 @@ namespace SDL_Lab1
             }
 
             SDL.SDL_RenderDrawLines(renderer, MapListOfPoints(points).ToArray(), points.Count);
+        }
+
+        /// <summary>
+        /// Draw dash line
+        /// </summary>
+        /// <param name="renderer"> Renderer for window </param>
+        /// <param name="points"> List of points like [line1.start, line1.end, line2.start, line2.end, ...]</param>
+        private static void DrawDashLines(IntPtr renderer, List<SDL.SDL_Point> points)
+        {
+            for (int i = 0; i < points.Count/2; i++)
+            {
+                var startPoint = points[2*i];
+                var endPoint = points[2*i + 1];
+                var length = Math.Sqrt((endPoint.x - startPoint.x)*(endPoint.x - startPoint.x) +
+                                       (endPoint.y - startPoint.y)*(endPoint.y - startPoint.y));
+                var dashCount = Math.Ceiling(length/DashLength);
+                var dt = 1/dashCount;
+                var line = new List<SDL.SDL_Point>
+                {
+                    new SDL.SDL_Point
+                    {
+                        x = startPoint.x,
+                        y = startPoint.y
+                    },
+                    new SDL.SDL_Point
+                    {
+                        x = startPoint.x + (int) Math.Round(dt*(endPoint.x - startPoint.x)),
+                        y = startPoint.y + (int) Math.Round(dt*(endPoint.y - startPoint.y))
+                    }
+                };
+                for (var j = 0; j < dashCount; j += 2)
+                {
+                    SDL.SDL_RenderDrawLines(renderer, MapListOfPoints(line).ToArray(), line.Count);
+                    line[0] = new SDL.SDL_Point
+                    {
+                        x = line[0].x + (int) Math.Round(2*dt*(endPoint.x - startPoint.x)),
+                        y = line[0].y + (int) Math.Round(2*dt*(endPoint.y - startPoint.y))
+                    };
+                    line[1] = new SDL.SDL_Point
+                    {
+                        x = line[1].x + (int) Math.Round(2*dt*(endPoint.x - startPoint.x)),
+                        y = line[1].y + (int) Math.Round(2*dt*(endPoint.y - startPoint.y))
+                    };
+                }
+            }
         }
 
         private static void FindLineVisiblePoints(List<SDL.SDL_Point> visibleLines, List<SDL.SDL_Point> notVisibleLines,
