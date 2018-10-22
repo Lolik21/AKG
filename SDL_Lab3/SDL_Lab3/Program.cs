@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using SDL2;
@@ -10,7 +11,7 @@ namespace SDL_Lab1
         private static readonly Random Random = new Random(DateTime.Now.Millisecond);
 
         private const int CircleRadius = 150;
-        private const int CountOfCircleQuarters = 100;
+        private const int CountOfCircleQuarters = 10;
         private const int DashLength = 5;
         private const int AnimateTimerMax = 10;
         private const int MaxFigureSpeed = 0;
@@ -218,9 +219,17 @@ namespace SDL_Lab1
         private static void DrawFigures(IntPtr renderer)
         {
             SDL.SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-            //DrawRectangle(renderer, _mainWindow);
-            DrawRectangle(renderer, _rectangle, _mainWindow);
-            DrawCirclePoints(renderer, _circle);
+            DrawViewWindow(renderer, _mainWindow);
+            //DrawRectangle(renderer, _rectangle, _mainWindow);
+            DrawRectangle(renderer, _circle, _mainWindow);
+            //DrawCirclePoints(renderer, _circle);
+        }
+
+        private static void DrawViewWindow(IntPtr renderer, List<SDL.SDL_Point> mainWindow)
+        {
+            var points = new List<SDL.SDL_Point>(_mainWindow);
+            points.Add(points.FirstOrDefault());
+            SDL.SDL_RenderDrawLines(renderer, MapListOfPoints(points).ToArray(), points.Count);
         }
 
         private static void InitFigures(out List<SDL.SDL_Point> circle,
@@ -276,15 +285,15 @@ namespace SDL_Lab1
 
             for (var i = 0; i < _circle.Count; i++)
             {
-                if ((_circle[i].x >= center.x && _dxCircle>=0) || 
-                    (_circle[i].x <= -center.x && _dxCircle<=0))
+                if ((_circle[i].x >= center.x && _dxCircle >= 0) ||
+                    (_circle[i].x <= -center.x && _dxCircle <= 0))
                 {
                     _dxCircle *= -1;
                     break;
                 }
-                
 
-                if ((_circle[i].y >= center.y && _dyCircle>=0) || 
+
+                if ((_circle[i].y >= center.y && _dyCircle >= 0) ||
                     (_circle[i].y <= -center.y && _dyCircle <= 0))
                 {
                     _dyCircle *= -1;
@@ -303,14 +312,14 @@ namespace SDL_Lab1
 
             for (var i = 0; i < _rectangle.Count; i++)
             {
-                if ((_rectangle[i].x >= center.x && _dxRectangle >= 0) || 
+                if ((_rectangle[i].x >= center.x && _dxRectangle >= 0) ||
                     (_rectangle[i].x <= -center.x && _dxRectangle <= 0))
                 {
                     _dxRectangle *= -1;
                     break;
                 }
 
-                if ((_rectangle[i].y >= center.y && _dyRectangle >= 0) || 
+                if ((_rectangle[i].y >= center.y && _dyRectangle >= 0) ||
                     (_rectangle[i].y <= -center.y && _dyRectangle <= 0))
                 {
                     _dyRectangle *= -1;
@@ -349,7 +358,18 @@ namespace SDL_Lab1
                 FindLineVisiblePoints(visibleLines, notVisibleLines, viewWindowPoints, points[i], points[i + 1]);
             }
 
-            SDL.SDL_RenderDrawLines(renderer, MapListOfPoints(points).ToArray(), points.Count);
+            DrawVisibleAndNotVisibleLines(visibleLines, notVisibleLines, renderer);
+        }
+
+        private static void DrawVisibleAndNotVisibleLines(List<SDL.SDL_Point> visibleLines, List<SDL.SDL_Point> notVisibleLines, IntPtr renderer)
+        {
+            visibleLines = MapListOfPoints(visibleLines);
+            for (int i = 0; i < visibleLines.Count - 1; i = i + 2)
+            {
+                SDL.SDL_RenderDrawLine(renderer, visibleLines[i].x, visibleLines[i].y, visibleLines[i + 1].x,
+                    visibleLines[i + 1].y);
+            }
+            DrawDashLines(renderer, notVisibleLines);
         }
 
         /// <summary>
@@ -359,14 +379,14 @@ namespace SDL_Lab1
         /// <param name="points"> List of points like [line1.start, line1.end, line2.start, line2.end, ...]</param>
         private static void DrawDashLines(IntPtr renderer, List<SDL.SDL_Point> points)
         {
-            for (int i = 0; i < points.Count/2; i++)
+            for (int i = 0; i < points.Count / 2; i++)
             {
-                var startPoint = points[2*i];
-                var endPoint = points[2*i + 1];
-                var length = Math.Sqrt((endPoint.x - startPoint.x)*(endPoint.x - startPoint.x) +
-                                       (endPoint.y - startPoint.y)*(endPoint.y - startPoint.y));
-                var dashCount = Math.Ceiling(length/DashLength);
-                var dt = 1/dashCount;
+                var startPoint = points[2 * i];
+                var endPoint = points[2 * i + 1];
+                var length = Math.Sqrt((endPoint.x - startPoint.x) * (endPoint.x - startPoint.x) +
+                                       (endPoint.y - startPoint.y) * (endPoint.y - startPoint.y));
+                var dashCount = Math.Ceiling(length / DashLength);
+                var dt = 1 / dashCount;
                 var line = new List<SDL.SDL_Point>
                 {
                     new SDL.SDL_Point
@@ -385,13 +405,13 @@ namespace SDL_Lab1
                     SDL.SDL_RenderDrawLines(renderer, MapListOfPoints(line).ToArray(), line.Count);
                     line[0] = new SDL.SDL_Point
                     {
-                        x = line[0].x + (int) Math.Round(2*dt*(endPoint.x - startPoint.x)),
-                        y = line[0].y + (int) Math.Round(2*dt*(endPoint.y - startPoint.y))
+                        x = line[0].x + (int)Math.Round(2 * dt * (endPoint.x - startPoint.x)),
+                        y = line[0].y + (int)Math.Round(2 * dt * (endPoint.y - startPoint.y))
                     };
                     line[1] = new SDL.SDL_Point
                     {
-                        x = line[1].x + (int) Math.Round(2*dt*(endPoint.x - startPoint.x)),
-                        y = line[1].y + (int) Math.Round(2*dt*(endPoint.y - startPoint.y))
+                        x = line[1].x + (int)Math.Round(2 * dt * (endPoint.x - startPoint.x)),
+                        y = line[1].y + (int)Math.Round(2 * dt * (endPoint.y - startPoint.y))
                     };
                 }
             }
@@ -417,46 +437,110 @@ namespace SDL_Lab1
 
                 if (vectorDScalar == 0)
                 {
-                    if (vectorWScalar < 0) return;
+                    if (vectorWScalar < 0)
+                    {
+                        isVisible = true;
+                        break;
+                    }
                 }
                 else
                 {
-                    var t = -vectorWScalar / (double)vectorDScalar;
+                    var t = -vectorWScalar / (double)vectorDScalar;                  
 
                     if (vectorDScalar > 0)
                     {
-                        if (t > 1) return;
-                        enteringWindowParameter = Math.Max(enteringWindowParameter, t);
+                        if (t > 1)
+                        {
+                            isVisible = true;
+                            break;
+                        }
+                        exitingWindowParameter = Math.Max(exitingWindowParameter, t);
                     }
-                    else if(vectorDScalar < 0)
+                    else if (vectorDScalar < 0)
                     {
-                        if (t < 0) return;
-                        exitingWindowParameter = Math.Min(exitingWindowParameter, t);
+                        if (t < 0)
+                        {
+                            isVisible = true;
+                            break;
+                        }
+                        enteringWindowParameter = Math.Min(enteringWindowParameter, t);
                     }
                 }
             }
 
-            AddLinesToLists(pointA, pointB,visibleLines, notVisibleLines, 
-                enteringWindowParameter, exitingWindowParameter, isVisible);
+            if (exitingWindowParameter <= enteringWindowParameter)
+                AddLinesToLists(pointA, pointB, visibleLines, notVisibleLines,
+                    enteringWindowParameter, exitingWindowParameter, isVisible);
 
         }
 
         private static void AddLinesToLists(SDL.SDL_Point pointA, SDL.SDL_Point pointB,
-            List<SDL.SDL_Point> visibleLines, List<SDL.SDL_Point> notVisibleLines, 
+            List<SDL.SDL_Point> visibleLines, List<SDL.SDL_Point> notVisibleLines,
             double enteringWindowParameter, double exitingWindowParameter, bool isVisible)
         {
-            if (enteringWindowParameter == 0 && exitingWindowParameter == 1)
+            if (enteringWindowParameter == 1 && exitingWindowParameter == 0 && !isVisible)
+            {
+                visibleLines.Add(pointA);
+                visibleLines.Add(pointB);
+            }
+
+            if (enteringWindowParameter == 1 && exitingWindowParameter == 0 && isVisible)
             {
                 notVisibleLines.Add(pointA);
                 notVisibleLines.Add(pointB);
+                return;
             }
 
+            var enterPoint = FromParametric(pointA, pointB, enteringWindowParameter);
+            var exitPoint = FromParametric(pointA, pointB, exitingWindowParameter);
 
+            if (enteringWindowParameter != 1 && exitingWindowParameter != 0)
+            {
+               
+
+                notVisibleLines.Add(pointA);
+                notVisibleLines.Add(exitPoint);
+                notVisibleLines.Add(enterPoint);
+                notVisibleLines.Add(pointB);
+
+                visibleLines.Add(enterPoint);
+                visibleLines.Add(exitPoint);
+                return;
+            }
+
+            if (exitingWindowParameter != 0)
+            {
+                visibleLines.Add(pointB);
+                visibleLines.Add(exitPoint);
+
+                notVisibleLines.Add(exitPoint);
+                notVisibleLines.Add(pointA);
+
+                return;
+            }
+
+            if (enteringWindowParameter != 1)
+            {
+                notVisibleLines.Add(pointB);
+                notVisibleLines.Add(enterPoint);
+
+                visibleLines.Add(enterPoint);
+                visibleLines.Add(pointA);
+            }
+
+        }
+
+        private static SDL.SDL_Point FromParametric(SDL.SDL_Point pointA, SDL.SDL_Point pointB, double param)
+        {
+            var result = new SDL.SDL_Point();
+            result.x = (int)(pointA.x + (pointB.x - pointA.x) * param);
+            result.y = (int)(pointA.y + (pointB.y - pointA.y) * param);
+            return result;
         }
 
         private static int ScalarComposition(SDL.SDL_Point vectorPointA, SDL.SDL_Point vectorPointB)
         {
-            return vectorPointA.x* vectorPointB.x + vectorPointA.y * vectorPointB.y;
+            return vectorPointA.x * vectorPointB.x + vectorPointA.y * vectorPointB.y;
         }
 
         private static void MiIsGreater(int Mi, int Qi, ref double enteringWindowParameter, ref double exitingWindowParameter)
@@ -468,10 +552,7 @@ namespace SDL_Lab1
                 {
                     return;
                 }
-                else
-                {
-                    enteringWindowParameter = Math.Max(enteringWindowParameter, t);
-                }
+                enteringWindowParameter = Math.Max(enteringWindowParameter, t);
             }
             else
             {
@@ -479,10 +560,7 @@ namespace SDL_Lab1
                 {
                     return;
                 }
-                else
-                {
-                    exitingWindowParameter = Math.Min(exitingWindowParameter, t);
-                }
+                exitingWindowParameter = Math.Min(exitingWindowParameter, t);
             }
         }
 
