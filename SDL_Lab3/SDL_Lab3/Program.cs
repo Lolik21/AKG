@@ -220,9 +220,34 @@ namespace SDL_Lab1
         {
             SDL.SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
             DrawViewWindow(renderer, _mainWindow);
-            //DrawRectangle(renderer, _rectangle, _mainWindow);
-            DrawRectangle(renderer, _circle, _mainWindow);
+            DrawRectangle(renderer, _rectangle, _mainWindow);
+            DrawCircle(renderer, _circle, _mainWindow, _rectangle);
             //DrawCirclePoints(renderer, _circle);
+        }
+
+        private static void DrawCircle(IntPtr renderer, List<SDL.SDL_Point> rectangle, List<SDL.SDL_Point> viewWindow, List<SDL.SDL_Point> viewWindow2)
+        {
+            var points = new List<SDL.SDL_Point>(rectangle);
+            var viewWindowPoints1 = new List<SDL.SDL_Point>(viewWindow);
+            var viewWindowPoints2 = new List<SDL.SDL_Point>(viewWindow2);
+
+            //Here lines will be like line[0] --- line[1] where line[0] is point
+            var visibleLines = new List<SDL.SDL_Point>();
+            var notVisibleLines = new List<SDL.SDL_Point>();
+
+            //Add last points
+            points.Add(points.FirstOrDefault());
+            viewWindowPoints1.Add(viewWindowPoints1.FirstOrDefault());
+            viewWindowPoints2.Add(viewWindowPoints2.FirstOrDefault());
+
+            for (int i = 0; i < points.Count - 1; i++)
+            {
+                FindLineVisiblePoints(visibleLines, notVisibleLines, viewWindowPoints2, points[i], points[i + 1]);
+            }
+
+            ProcessPoints(visibleLines, notVisibleLines, viewWindow);
+            ProcessPoints(visibleLines, notVisibleLines, viewWindow2);
+            DrawVisibleAndNotVisibleLines(visibleLines, notVisibleLines, renderer);
         }
 
         private static void DrawViewWindow(IntPtr renderer, List<SDL.SDL_Point> mainWindow)
@@ -358,7 +383,29 @@ namespace SDL_Lab1
                 FindLineVisiblePoints(visibleLines, notVisibleLines, viewWindowPoints, points[i], points[i + 1]);
             }
 
+            ProcessPoints(visibleLines, notVisibleLines, viewWindow);
             DrawVisibleAndNotVisibleLines(visibleLines, notVisibleLines, renderer);
+        }
+
+        private static void ProcessPoints(List<SDL.SDL_Point> visibleLines, List<SDL.SDL_Point> notVisibleLines, List<SDL.SDL_Point> rectangle)
+        {
+            var pointsToRemove = new List<SDL.SDL_Point>();
+            for (int i = 0; i < visibleLines.Count - 1; i = i + 2)
+            {
+                if (!IsInFigure(rectangle, visibleLines[i]) && !IsInFigure(rectangle, visibleLines[i + 1]))
+                {
+                    notVisibleLines.Add(visibleLines[i]);
+                    notVisibleLines.Add(visibleLines[i + 1]);
+
+                    pointsToRemove.Add(visibleLines[i]);
+                    pointsToRemove.Add(visibleLines[i + 1]);
+                }
+            }
+
+            foreach (var sdlPoint in pointsToRemove)
+            {
+                visibleLines.Remove(sdlPoint);
+            }
         }
 
         private static void DrawVisibleAndNotVisibleLines(List<SDL.SDL_Point> visibleLines, List<SDL.SDL_Point> notVisibleLines, IntPtr renderer)
@@ -445,7 +492,7 @@ namespace SDL_Lab1
                 }
                 else
                 {
-                    var t = -vectorWScalar / (double)vectorDScalar;                  
+                    var t = -vectorWScalar / (double)vectorDScalar;
 
                     if (vectorDScalar > 0)
                     {
@@ -471,6 +518,11 @@ namespace SDL_Lab1
             if (exitingWindowParameter <= enteringWindowParameter)
                 AddLinesToLists(pointA, pointB, visibleLines, notVisibleLines,
                     enteringWindowParameter, exitingWindowParameter, isVisible);
+            else
+            {
+                notVisibleLines.Add(pointA);
+                notVisibleLines.Add(pointB);
+            }
 
         }
 
@@ -478,10 +530,13 @@ namespace SDL_Lab1
             List<SDL.SDL_Point> visibleLines, List<SDL.SDL_Point> notVisibleLines,
             double enteringWindowParameter, double exitingWindowParameter, bool isVisible)
         {
+            
+
             if (enteringWindowParameter == 1 && exitingWindowParameter == 0 && !isVisible)
             {
                 visibleLines.Add(pointA);
                 visibleLines.Add(pointB);
+                return;
             }
 
             if (enteringWindowParameter == 1 && exitingWindowParameter == 0 && isVisible)
@@ -563,12 +618,6 @@ namespace SDL_Lab1
                 exitingWindowParameter = Math.Min(exitingWindowParameter, t);
             }
         }
-
-        private static SDL.SDL_Point GetPointFromTParameter(SDL.SDL_Point pointA, SDL.SDL_Point pointB)
-        {
-            return new SDL.SDL_Point();
-        }
-
 
         private static SDL.SDL_Point FindVectorNorm(SDL.SDL_Point pointA, SDL.SDL_Point pointB)
         {
