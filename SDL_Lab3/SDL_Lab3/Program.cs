@@ -13,8 +13,8 @@ namespace SDL_Lab1
         private const int CountOfCircleQuarters = 100;
         private const int DashLength = 5;
         private const int AnimateTimerMax = 10;
-        private const int MaxFigureSpeed = 5;
-        private const int MinFigureSpeed = 1;
+        private const int MaxFigureSpeed = 0;
+        private const int MinFigureSpeed = 0;
 
         private const int WindowHeight = 720;
         private const int WindowWidth = 1280;
@@ -401,29 +401,62 @@ namespace SDL_Lab1
             List<SDL.SDL_Point> viewWindowPoints, SDL.SDL_Point pointA, SDL.SDL_Point pointB)
         {
             //This is line that potentially intercepts with view window
-            var vectorAB = new SDL.SDL_Point { x = pointB.x - pointA.x, y = pointB.y - pointA.y };
-            var enteringWindowParameter = 0.0;
-            var exitingWindowParameter = 1.0;
+            //This vector shows direction of the vector.
+            var vectorD = new SDL.SDL_Point { x = pointB.x - pointA.x, y = pointB.y - pointA.y };
+            var exitingWindowParameter = 0.0;
+            var enteringWindowParameter = 1.0;
+            var isVisible = false;
 
             for (int j = 0; j < viewWindowPoints.Count - 1; j++)
             {
-
                 var normVector = FindVectorNorm(viewWindowPoints[j], viewWindowPoints[j + 1]);
-                var Fi = viewWindowPoints[j];
-                var tempQiVector = new SDL.SDL_Point { x = pointA.x - Fi.x, y = pointA.y - Fi.y };
-                // (M > 0 then -|>),  (M < 0 then <|-), (M == 0 then ||)
-                var Mi = normVector.x * vectorAB.x + normVector.y * vectorAB.y;
-                var Qi = normVector.x * tempQiVector.x + normVector.y * tempQiVector.y;
+                var vectorW = new SDL.SDL_Point { x = pointA.x - viewWindowPoints[j].x, y = pointA.y - viewWindowPoints[j].y };
 
-                if (Mi == 0)
+                var vectorDScalar = ScalarComposition(vectorD, normVector);
+                var vectorWScalar = ScalarComposition(vectorW, normVector);
+
+                if (vectorDScalar == 0)
                 {
-                    if (Qi < 0)
-                    {
-                        continue;
-                    }                
+                    if (vectorWScalar < 0) return;
                 }
-                MiIsGreater(Mi, Qi, ref enteringWindowParameter, ref exitingWindowParameter);
+                else
+                {
+                    var t = -vectorWScalar / (double)vectorDScalar;
+
+                    if (vectorDScalar > 0)
+                    {
+                        if (t > 1) return;
+                        enteringWindowParameter = Math.Max(enteringWindowParameter, t);
+                    }
+                    else if(vectorDScalar < 0)
+                    {
+                        if (t < 0) return;
+                        exitingWindowParameter = Math.Min(exitingWindowParameter, t);
+                    }
+                }
             }
+
+            AddLinesToLists(pointA, pointB,visibleLines, notVisibleLines, 
+                enteringWindowParameter, exitingWindowParameter, isVisible);
+
+        }
+
+        private static void AddLinesToLists(SDL.SDL_Point pointA, SDL.SDL_Point pointB,
+            List<SDL.SDL_Point> visibleLines, List<SDL.SDL_Point> notVisibleLines, 
+            double enteringWindowParameter, double exitingWindowParameter, bool isVisible)
+        {
+            if (enteringWindowParameter == 0 && exitingWindowParameter == 1)
+            {
+                notVisibleLines.Add(pointA);
+                notVisibleLines.Add(pointB);
+            }
+
+
+        }
+
+        private static int ScalarComposition(SDL.SDL_Point vectorPointA, SDL.SDL_Point vectorPointB)
+        {
+            return vectorPointA.x* vectorPointB.x + vectorPointA.y * vectorPointB.y;
         }
 
         private static void MiIsGreater(int Mi, int Qi, ref double enteringWindowParameter, ref double exitingWindowParameter)
