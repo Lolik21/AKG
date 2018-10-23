@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using SDL2;
 
@@ -11,11 +12,11 @@ namespace SDL_Lab1
         private static readonly Random Random = new Random(DateTime.Now.Millisecond);
 
         private const int CircleRadius = 150;
-        private const int CountOfCircleQuarters = 10;
+        private const int CountOfCircleQuarters = 100;
         private const int DashLength = 5;
         private const int AnimateTimerMax = 10;
-        private const int MaxFigureSpeed = 0;
-        private const int MinFigureSpeed = 0;
+        private const int MaxFigureSpeed = 5;
+        private const int MinFigureSpeed = 2;
 
         private const int WindowHeight = 720;
         private const int WindowWidth = 1280;
@@ -221,7 +222,7 @@ namespace SDL_Lab1
             SDL.SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
             DrawViewWindow(renderer, _mainWindow);
             DrawRectangle(renderer, _rectangle, _mainWindow);
-            DrawCircle(renderer, _circle, _mainWindow, _rectangle);
+            DrawCircle(renderer, _circle, _rectangle, _mainWindow);
             //DrawCirclePoints(renderer, _circle);
         }
 
@@ -242,12 +243,58 @@ namespace SDL_Lab1
 
             for (int i = 0; i < points.Count - 1; i++)
             {
-                FindLineVisiblePoints(visibleLines, notVisibleLines, viewWindowPoints2, points[i], points[i + 1]);
+                FindLineVisiblePoints(notVisibleLines, visibleLines, viewWindowPoints1, points[i], points[i + 1]);
+            }
+            ProcessPoints(notVisibleLines, visibleLines, viewWindow);
+
+            var notV1 = new List<SDL.SDL_Point>();
+            var V1 = new List<SDL.SDL_Point>();
+
+            for (int i = 0; i < points.Count - 1; i++)
+            {
+                FindLineVisiblePoints(V1, notV1, viewWindowPoints2, points[i], points[i + 1]);
+            }
+            ProcessPoints(V1, notV1, viewWindow2);
+
+            notVisibleLines.AddRange(notV1);
+
+            ExcludeFromVisiblePoints(ref visibleLines,notVisibleLines, viewWindow2);
+
+            DrawVisibleAndNotVisibleLines(visibleLines, notVisibleLines, renderer);
+        }
+
+        private static void ExcludeFromVisiblePoints(ref List<SDL.SDL_Point> visibleLines, List<SDL.SDL_Point> notVisibleLines,
+            List<SDL.SDL_Point> viewWindow)
+        {
+            var points = new List<SDL.SDL_Point>();
+            for (int i = 0; i < visibleLines.Count - 1; i = i + 2)
+            {
+                //if (IsInFigure(viewWindow, visibleLines[i]) && IsInFigure(viewWindow, visibleLines[i + 1]))
+                //{
+                //    points.Add(visibleLines[i]);
+                //    points.Add(visibleLines[i + 1]);
+                //}
+
+                //if (IsInFigure(viewWindow, visibleLines[i]) && !IsInFigure(viewWindow, visibleLines[i + 1]))
+                //{
+                //    points.Add(visibleLines[i]);
+                //    points.Add(visibleLines[i + 1]);
+                //}
+
+                //if (!IsInFigure(viewWindow, visibleLines[i]) && IsInFigure(viewWindow, visibleLines[i + 1]))
+                //{
+                //    points.Add(visibleLines[i]);
+                //    points.Add(visibleLines[i + 1]);
+                //}
+
+                if (IsInFigure(viewWindow, visibleLines[i]) && IsInFigure(viewWindow, visibleLines[i + 1]))
+                {
+                    points.Add(visibleLines[i]);
+                    points.Add(visibleLines[i + 1]);
+                }
             }
 
-            ProcessPoints(visibleLines, notVisibleLines, viewWindow);
-            ProcessPoints(visibleLines, notVisibleLines, viewWindow2);
-            DrawVisibleAndNotVisibleLines(visibleLines, notVisibleLines, renderer);
+            visibleLines = points;
         }
 
         private static void DrawViewWindow(IntPtr renderer, List<SDL.SDL_Point> mainWindow)
