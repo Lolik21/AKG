@@ -13,7 +13,20 @@ namespace SDL_Lab1
             return new Polygon
             {
                 IsVisible = IsVisible,
-                Edges = Edges.Select(edge => edge.RotateEdgeByAngleAndAxisAroundPoint(angle, axis, point)).ToList()
+                Edges = Edges
+                    .Select(edge => edge.RotateEdgeByAngleAndAxisAroundPoint(angle, axis, point))
+                    .ToList()
+            };
+        }
+
+        public Polygon PerspectiveProjection(double distanse, Vertex pivot)
+        {
+            return new Polygon
+            {
+                IsVisible = IsVisible,
+                Edges = Edges
+                    .Select(edge => edge.PerspectiveProjection(distanse, pivot))
+                    .ToList()
             };
         }
 

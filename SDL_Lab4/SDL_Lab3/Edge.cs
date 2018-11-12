@@ -28,6 +28,17 @@
             };
         }
 
+        public Edge PerspectiveProjection(double distanse, Vertex pivot)
+        {
+            return new Edge
+            {
+                Color = Color,
+                End = End.PerspectiveProjection(distanse, pivot),
+                Start = Start.PerspectiveProjection(distanse, pivot),
+                IsVisible = IsVisible
+            };
+        }
+
         public double Length()
         {
             return End.Sum(Start.Negotiate()).VectorLength();

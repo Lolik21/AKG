@@ -6,7 +6,7 @@ namespace SDL_Lab1
     {
         public Vertex(){}
 
-        public Vertex(int x, int y, int z, bool isVisible = true)
+        public Vertex(double x, double y, double z, bool isVisible = true)
         {
             X = x;
             Y = y;
@@ -14,9 +14,9 @@ namespace SDL_Lab1
             IsVisible = isVisible;
         }
 
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int Z { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Z { get; set; }
         public bool IsVisible { get; set; } = true;
 
         public Vertex RotateByAngleAndAxisAroundPoint(double angle, Axis axis, Vertex point)
@@ -54,6 +54,20 @@ namespace SDL_Lab1
             }
 
             return vertex.Sum(point);
+        }
+
+        public Vertex PerspectiveProjection(double distanse, Vertex pivot)
+        {
+            var vertex = Sum(pivot.Negotiate());
+            vertex = new Vertex
+            {
+                X = Math.Round(vertex.X/(vertex.Z/distanse)),
+                Y = Math.Round(vertex.Y/(vertex.Z/distanse)),
+                Z = vertex.Z,
+                IsVisible = IsVisible
+            };
+
+            return vertex.Sum(pivot);
         }
 
         /// <summary>

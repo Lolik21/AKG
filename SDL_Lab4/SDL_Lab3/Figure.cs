@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using SDL2;
 
 namespace SDL_Lab1
@@ -14,8 +15,6 @@ namespace SDL_Lab1
             Pivot = pivot ?? throw new ArgumentNullException(nameof(pivot));
             Polygons = polygons ?? throw new ArgumentNullException(nameof(polygons));
         }
-
-        //public Dictionary<Vertex, List<Vertex>> Links { get; set; }
 
         public List<Vertex> Vertexes => Edges.SelectMany(edge => new List<Vertex> {edge.Start, edge.End}).ToList();
 
@@ -32,6 +31,17 @@ namespace SDL_Lab1
                 Pivot = Pivot,
                 Polygons = Polygons
                     .Select(polygon => polygon.RotateEdgeByAngleAndAxisAroundPoint(angle, axis, Pivot))
+                    .ToList()
+            };
+        }
+
+        public Figure PerspectiveProjection(double distanse, Vertex point)
+        {
+            return new Figure
+            {
+                Pivot = Pivot,
+                Polygons = Polygons
+                    .Select(polygon => polygon.PerspectiveProjection(distanse, point))
                     .ToList()
             };
         }

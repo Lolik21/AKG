@@ -13,13 +13,16 @@ namespace SDL_Lab1
         private static readonly (byte red, byte green, byte blue, byte alpha) GreenColor = (0, 255, 0, 255);
         private static readonly (byte red, byte green, byte blue, byte alpha) BlueColor = (0, 0, 255, 255);
 
-        //private static double _xAngle = Math.PI / 4;
-        //private static double _yAngle = -Math.PI / 4;
-        //private static double _zAngle = -Math.PI / 2;
-        private static double _xAngle = 0d;
-        private static double _yAngle = 0d;
-        private static double _zAngle = 0d;
+        private static double _xAngle = Math.PI / 4;
+        private static double _yAngle = Math.PI / 4;
+        private static double _zAngle = -Math.PI / 2;
+        //private static double _xAngle = 0d;
+        //private static double _yAngle = 0d;
+        //private static double _zAngle = 0d;
 
+        private static int d = 600;
+
+        private const int dSpeed = 10;
         private const double RotatingSpeed = Math.PI/36;
 
         private const int DashLength = 5;
@@ -32,10 +35,6 @@ namespace SDL_Lab1
 
         private static Figure _figure;
         private static Figure _axis;
-
-        //private static readonly Vertex _axisX = new Vertex(50, 0, 0);
-        //private static readonly Vertex _axisY = new Vertex(0, 50, 0);
-        //private static readonly Vertex _axisZ = new Vertex(0, 0, 50);
 
         #region SDLInit
 
@@ -68,24 +67,25 @@ namespace SDL_Lab1
 
         private static Figure InitFigure()
         {
+            var delta = 600;
             var center = FindCenter();
-            var p0 = new Vertex {X = -100, Y = 100, Z = 100}.Sum(center);
-            var p1 = new Vertex {X = -100, Y = 100, Z = -100}.Sum(center);
-            var p2 = new Vertex {X = 0, Y = 100, Z = -100}.Sum(center);
-            var p3 = new Vertex {X = 0, Y = 100, Z = 0}.Sum(center);
-            var p4 = new Vertex {X = 100, Y = 100, Z = 0}.Sum(center);
-            var p5 = new Vertex {X = 100, Y = 100, Z = 100}.Sum(center);
-            var p6 = new Vertex {X = -100, Y = 0, Z = -100}.Sum(center);
-            var p7 = new Vertex {X = 0, Y = 0, Z = -100}.Sum(center);
-            var p8 = new Vertex {X = 0, Y = 0, Z = 0}.Sum(center);
-            var p9 = new Vertex {X = 100, Y = 0, Z = 0}.Sum(center);
-            var p10 = new Vertex {X = 100, Y = 0, Z = 100}.Sum(center);
-            var p11 = new Vertex {X = 0, Y = 0, Z = 100}.Sum(center);
-            var p12 = new Vertex {X = -100, Y = 0, Z = 0}.Sum(center);
-            var p13 = new Vertex {X = -100, Y = -100, Z = 0}.Sum(center);
-            var p14 = new Vertex {X = 0, Y = -100, Z = 0}.Sum(center);
-            var p15 = new Vertex {X = 0, Y = -100, Z = 100}.Sum(center);
-            var p16 = new Vertex {X = -100, Y = -100, Z = 100}.Sum(center);
+            var p0 = new Vertex {X = -100, Y = 100, Z = 100 + delta}.Sum(center);
+            var p1 = new Vertex {X = -100, Y = 100, Z = -100 + delta}.Sum(center);
+            var p2 = new Vertex {X = 0, Y = 100, Z = -100 + delta }.Sum(center);
+            var p3 = new Vertex {X = 0, Y = 100, Z = 0 + delta }.Sum(center);
+            var p4 = new Vertex {X = 100, Y = 100, Z = 0 + delta }.Sum(center);
+            var p5 = new Vertex {X = 100, Y = 100, Z = 100 + delta }.Sum(center);
+            var p6 = new Vertex {X = -100, Y = 0, Z = -100 + delta }.Sum(center);
+            var p7 = new Vertex {X = 0, Y = 0, Z = -100 + delta }.Sum(center);
+            var p8 = new Vertex {X = 0, Y = 0, Z = 0 + delta }.Sum(center);
+            var p9 = new Vertex {X = 100, Y = 0, Z = 0 + delta }.Sum(center);
+            var p10 = new Vertex {X = 100, Y = 0, Z = 100 + delta }.Sum(center);
+            var p11 = new Vertex {X = 0, Y = 0, Z = 100 + delta }.Sum(center);
+            var p12 = new Vertex {X = -100, Y = 0, Z = 0 + delta }.Sum(center);
+            var p13 = new Vertex {X = -100, Y = -100, Z = 0 + delta }.Sum(center);
+            var p14 = new Vertex {X = 0, Y = -100, Z = 0 + delta }.Sum(center);
+            var p15 = new Vertex {X = 0, Y = -100, Z = 100 + delta }.Sum(center);
+            var p16 = new Vertex {X = -100, Y = -100, Z = 100 + delta }.Sum(center);
             var p17 = new Vertex {X = p12.X, Y = p1.Y, Z = p12.Z, IsVisible = false};
             var p18 = new Vertex {X = p12.X, Y = p12.Y, Z = p16.Z, IsVisible = false};
             var p19 = new Vertex {X = p11.X, Y = p5.Y, Z = p11.Z, IsVisible = false};
@@ -194,7 +194,7 @@ namespace SDL_Lab1
             });
 
 
-            return new Figure(new Vertex(0, 0, 0).Sum(center), polList);
+            return new Figure(new Vertex(0, 0, 0+delta).Sum(center), polList);
         }
 
         private static Polygon CreatePolygon(Vertex v1, Vertex v2, Vertex v3, Vertex v4) => new Polygon
@@ -265,23 +265,29 @@ namespace SDL_Lab1
                         case SDL.SDL_Keycode.SDLK_F4:
                         case SDL.SDL_Keycode.SDLK_ESCAPE:
                             return true;
-                        case SDL.SDL_Keycode.SDLK_a:
+                        case SDL.SDL_Keycode.SDLK_d:
                             _xAngle += RotatingSpeed;
                             break;
-                        case SDL.SDL_Keycode.SDLK_z:
+                        case SDL.SDL_Keycode.SDLK_a:
                             _xAngle -= RotatingSpeed;
                             break;
                         case SDL.SDL_Keycode.SDLK_s:
                             _yAngle += RotatingSpeed;
                             break;
-                        case SDL.SDL_Keycode.SDLK_x:
+                        case SDL.SDL_Keycode.SDLK_w:
                             _yAngle -= RotatingSpeed;
                             break;
-                        case SDL.SDL_Keycode.SDLK_d:
+                        case SDL.SDL_Keycode.SDLK_e:
                             _zAngle += RotatingSpeed;
                             break;
-                        case SDL.SDL_Keycode.SDLK_c:
+                        case SDL.SDL_Keycode.SDLK_q:
                             _zAngle -= RotatingSpeed;
+                            break;
+                        case SDL.SDL_Keycode.SDLK_r:
+                            d-=dSpeed;
+                            break;
+                        case SDL.SDL_Keycode.SDLK_f:
+                            d+=dSpeed;
                             break;
                     }
                     break;
@@ -332,7 +338,7 @@ namespace SDL_Lab1
             foreach (var edge in edges)
             {
                 SDL.SDL_SetRenderDrawColor(renderer, edge.Color.red, edge.Color.green, edge.Color.blue, edge.Color.alpha);
-                SDL.SDL_RenderDrawLine(renderer, edge.Start.X, edge.Start.Y, edge.End.X, edge.End.Y);
+                SDL.SDL_RenderDrawLine(renderer, (int)edge.Start.X, (int)edge.Start.Y, (int)edge.End.X, (int)edge.End.Y);
             }
         }
 
@@ -341,12 +347,14 @@ namespace SDL_Lab1
             var fig = _figure
                 .RotateByAngleAndAxis(_xAngle, Axis.X)
                 .RotateByAngleAndAxis(_yAngle, Axis.Y)
-                .RotateByAngleAndAxis(_zAngle, Axis.Z);
+                .RotateByAngleAndAxis(_zAngle, Axis.Z)
+                .PerspectiveProjection(d, FindCenter())
+                ;
 
             foreach (var edge in fig.Edges.Where(edge => edge.IsVisible))
             {
                 SDL.SDL_SetRenderDrawColor(renderer, edge.Color.red, edge.Color.green, edge.Color.blue, edge.Color.alpha);
-                SDL.SDL_RenderDrawLine(renderer, edge.Start.X, edge.Start.Y, edge.End.X, edge.End.Y);
+                SDL.SDL_RenderDrawLine(renderer, (int)edge.Start.X, (int)edge.Start.Y, (int)edge.End.X, (int)edge.End.Y);
             }
         }
 
