@@ -5,6 +5,9 @@ namespace SDL_Lab1
 {
     public class Polygon
     {
+        public int Number { get; set; }
+
+        public List<Vertex> Vertexes => Edges.SelectMany(edge => new List<Vertex> {edge.Start, edge.End}).ToList();
         public List<Edge> Edges { get; set; }
         public bool IsVisible { get; set; } = true;
 
@@ -15,7 +18,8 @@ namespace SDL_Lab1
                 IsVisible = IsVisible,
                 Edges = Edges
                     .Select(edge => edge.RotateEdgeByAngleAndAxisAroundPoint(angle, axis, point))
-                    .ToList()
+                    .ToList(),
+                Number = Number
             };
         }
 
@@ -26,7 +30,8 @@ namespace SDL_Lab1
                 IsVisible = IsVisible,
                 Edges = Edges
                     .Select(edge => edge.PerspectiveProjection(distanse, pivot))
-                    .ToList()
+                    .ToList(),
+                Number = Number
             };
         }
 
@@ -40,7 +45,12 @@ namespace SDL_Lab1
                 b = a;
                 a = c;
             }
-            return new Vertex(a.Y*b.Z - a.Z*b.Y, a.Z*b.X - a.X*b.Z, a.X*b.Y - a.Y*b.X);
+            return a.VectorMultiply(b);
+        }
+
+        public override string ToString()
+        {
+            return $"{Number}";
         }
     }
 }

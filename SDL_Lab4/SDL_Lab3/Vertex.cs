@@ -106,9 +106,43 @@ namespace SDL_Lab1
             return $"({X},{Y},{Z})";
         }
 
+        #region Vectors functions
+
         public double VectorLength()
         {
             return Math.Sqrt(X*X + Y*Y + Z*Z);
         }
+
+        public Vertex VectorMultiply(Vertex vector)
+        {
+            return new Vertex(Y*vector.Z - Z*vector.Y, Z*vector.X - X*vector.Z, X*vector.Y - Y*vector.X);
+        }
+
+        public double ScalarMultiply(Vertex vector)
+        {
+            return X*vector.X + Y*vector.Y + Z*vector.Z;
+        }
+
+        public Vertex NormalizeVector()
+        {
+            return new Vertex
+            {
+                X = X / VectorLength(),
+                Y = Y / VectorLength(),
+                Z = Z / VectorLength(),
+            };
+        }
+
+        public Vertex MultiplyByScalar(int scalar)
+        {
+            return new Vertex
+            {
+                X = X*scalar,
+                Y = Y*scalar,
+                Z = Z*scalar
+            };
+        }
+        
+        #endregion
     }
 }
