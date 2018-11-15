@@ -26,11 +26,27 @@ namespace SDL_Lab1
 
         public Figure RotateByAngleAndAxis(double angle, Axis axis)
         {
+            return RotateByAngleAndAxisAroundPoint(angle, axis, Pivot);
+        }
+
+        public Figure RotateByAngleAndAxisAroundPoint(double angle, Axis axis, Vertex point)
+        {
             return new Figure
             {
                 Pivot = Pivot,
                 Polygons = Polygons
-                    .Select(polygon => polygon.RotateEdgeByAngleAndAxisAroundPoint(angle, axis, Pivot))
+                    .Select(polygon => polygon.RotateEdgeByAngleAndAxisAroundPoint(angle, axis, point))
+                    .ToList()
+            };
+        }
+
+        public Figure MoveByAxis(double delta, Axis axis)
+        {
+            return new Figure
+            {
+                Pivot = Pivot,
+                Polygons = Polygons
+                    .Select(polygon => polygon.MoveByAxis(delta, axis))
                     .ToList()
             };
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SDL_Lab1
 {
@@ -101,9 +102,14 @@ namespace SDL_Lab1
             };
         }
 
+        public bool IsOnLine(Vertex p1, Vertex p2)
+        {
+            return Math.Abs((Y - p1.Y)/(p2.Y - p1.Y) - (X - p1.X)/(p2.X - p1.X)) < 0.0001;
+        }
+
         public override string ToString()
         {
-            return $"({X},{Y},{Z})";
+            return $"({X};{Y};{Z})";
         }
 
         #region Vectors functions
@@ -143,6 +149,35 @@ namespace SDL_Lab1
             };
         }
         
+        #endregion
+
+        #region Equality
+
+        protected bool Equals(Vertex other)
+        {
+            return X.Equals(other.X) && Y.Equals(other.Y) && Z.Equals(other.Z) && IsVisible == other.IsVisible;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Vertex) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = X.GetHashCode();
+                hashCode = (hashCode*397) ^ Y.GetHashCode();
+                hashCode = (hashCode*397) ^ Z.GetHashCode();
+                hashCode = (hashCode*397) ^ IsVisible.GetHashCode();
+                return hashCode;
+            }
+        }
+
         #endregion
     }
 }

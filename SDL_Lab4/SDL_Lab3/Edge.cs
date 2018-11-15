@@ -1,4 +1,7 @@
-﻿namespace SDL_Lab1
+﻿using System;
+using System.Collections.Generic;
+
+namespace SDL_Lab1
 {
     public class Edge
     {
@@ -18,6 +21,8 @@
         public Vertex End { get; set; }
         public bool IsVisible { get; set; } = true;
         public (byte red, byte green, byte blue, byte alpha) Color { get; set; }
+
+        public List<Vertex> Vertexes => new List<Vertex>{Start, End};
 
         public Edge RotateEdgeByAngleAndAxisAroundPoint(double angle, Axis axis, Vertex point)
         {
@@ -43,6 +48,27 @@
             };
         }
 
+        public Edge MoveByAxis(double delta, Axis axis)
+        {
+            switch (axis)
+            {
+                case Axis.X:
+                    return new Edge(Start.Sum(new Vertex(delta, 0, 0)), End.Sum(new Vertex(delta, 0, 0)), Color, Number,
+                        IsVisible);
+                case Axis.Y:
+                    return new Edge(Start.Sum(new Vertex(0, delta, 0)), End.Sum(new Vertex(0, delta, 0)), Color, Number,
+                        IsVisible);
+                case Axis.Z:
+                    return new Edge(Start.Sum(new Vertex(0, 0, delta)), End.Sum(new Vertex(0, 0, delta)), Color, Number,
+                        IsVisible);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(axis), axis, null);
+            }
+            
+        }
+
+        public Vertex Center => new Vertex((Start.X + End.X)/2, (Start.Y + End.Y)/2, (Start.Z + End.Z)/2);
+
         public double Length()
         {
             return End.Sum(Start.Negotiate()).VectorLength();
@@ -50,7 +76,7 @@
 
         public override string ToString()
         {
-            return $"({Start},{End})";
+            return $"({Start},{End}) ({Number})";
         }
     }
 }
