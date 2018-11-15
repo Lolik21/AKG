@@ -478,6 +478,49 @@ namespace SDL_Lab1
                         case SDL.SDL_Keycode.SDLK_v:
                             _showVector = !_showVector;
                             break;
+                        case SDL.SDL_Keycode.SDLK_l:
+                            _figure.RotationVector =
+                                _figure.RotationVector.RotateByAngleAndAxisAroundPoint(
+                                    -RotatingSpeed, 
+                                    Axis.Y,
+                                    _figure.Pivot);
+                            break;
+                        case SDL.SDL_Keycode.SDLK_PERIOD:
+                            _figure.RotationVector =
+                                _figure.RotationVector.RotateByAngleAndAxisAroundPoint(
+                                    RotatingSpeed,
+                                    Axis.Y,
+                                    _figure.Pivot);
+                            break;
+                        case SDL.SDL_Keycode.SDLK_COMMA:
+                            _figure.RotationVector =
+                                _figure.RotationVector.RotateByAngleAndAxisAroundPoint(
+                                    -RotatingSpeed,
+                                    Axis.X,
+                                    _figure.Pivot);
+                            break;
+                        case SDL.SDL_Keycode.SDLK_SLASH:
+                            _figure.RotationVector =
+                                _figure.RotationVector.RotateByAngleAndAxisAroundPoint(
+                                    RotatingSpeed,
+                                    Axis.X,
+                                    _figure.Pivot);
+                            break;
+                        case SDL.SDL_Keycode.SDLK_k:
+                            _figure.RotationVector =
+                                _figure.RotationVector.RotateByAngleAndAxisAroundPoint(
+                                    -RotatingSpeed,
+                                    Axis.Z,
+                                    _figure.Pivot);
+                            break;
+                        case SDL.SDL_Keycode.SDLK_SEMICOLON:
+                            _figure.RotationVector =
+                                _figure.RotationVector.RotateByAngleAndAxisAroundPoint(
+                                    RotatingSpeed,
+                                    Axis.Z,
+                                    _figure.Pivot);
+                            break;
+
                     }
                     break;
             }
