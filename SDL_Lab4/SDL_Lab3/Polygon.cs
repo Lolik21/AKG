@@ -12,13 +12,25 @@ namespace SDL_Lab1
         public List<Edge> Edges { get; set; }
         public bool IsVisible { get; set; } = true;
 
-        public Polygon RotateEdgeByAngleAndAxisAroundPoint(double angle, Axis axis, Vertex point)
+        public Polygon RotatePolygonByAngleAndAxisAroundPoint(double angle, Axis axis, Vertex point)
         {
             return new Polygon
             {
                 IsVisible = IsVisible,
                 Edges = Edges
                     .Select(edge => edge.RotateEdgeByAngleAndAxisAroundPoint(angle, axis, point))
+                    .ToList(),
+                Number = Number
+            };
+        }
+
+        public Polygon RotatePolygonByAngleAroundVector(double angle, Vertex vector, Vertex pivot)
+        {
+            return new Polygon
+            {
+                IsVisible = IsVisible,
+                Edges = Edges
+                    .Select(edge => edge.RotateEdgeByAngleAroundVector(angle, vector, pivot))
                     .ToList(),
                 Number = Number
             };
@@ -53,7 +65,6 @@ namespace SDL_Lab1
             (Edges[0].Start.Y + Edges[1].End.Y)/2,
             (Edges[0].Start.Z + Edges[1].End.Z)/2
         );
-        
 
         public Vertex NormVector(bool external = true)
         {

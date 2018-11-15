@@ -22,7 +22,9 @@ namespace SDL_Lab1
 
         public List<Polygon> Polygons { get; set; }
 
-        public Vertex Pivot { get; private set; }
+        public Vertex Pivot { get; set; }
+
+        public Vertex RotationVector { get; set; }
 
         public Figure RotateByAngleAndAxis(double angle, Axis axis)
         {
@@ -33,10 +35,23 @@ namespace SDL_Lab1
         {
             return new Figure
             {
+                Pivot = Pivot.RotateByAngleAndAxisAroundPoint(angle, axis, point),
+                Polygons = Polygons
+                    .Select(polygon => polygon.RotatePolygonByAngleAndAxisAroundPoint(angle, axis, point))
+                    .ToList(),
+                RotationVector = RotationVector.RotateByAngleAndAxisAroundPoint(angle, axis, point)
+            };
+        }
+
+        public Figure RotateByAngleAroundVector(double angle)
+        {
+            return new Figure
+            {
                 Pivot = Pivot,
                 Polygons = Polygons
-                    .Select(polygon => polygon.RotateEdgeByAngleAndAxisAroundPoint(angle, axis, point))
-                    .ToList()
+                    .Select(polygon => polygon.RotatePolygonByAngleAroundVector(angle, RotationVector.Sum(Pivot.Negotiate()), Pivot))
+                    .ToList(),
+                RotationVector = RotationVector
             };
         }
 
@@ -44,10 +59,11 @@ namespace SDL_Lab1
         {
             return new Figure
             {
-                Pivot = Pivot,
+                Pivot = Pivot.MoveByAxis(delta, axis),
                 Polygons = Polygons
                     .Select(polygon => polygon.MoveByAxis(delta, axis))
-                    .ToList()
+                    .ToList(),
+                RotationVector = RotationVector.MoveByAxis(delta, axis)
             };
         }
 
@@ -55,10 +71,11 @@ namespace SDL_Lab1
         {
             return new Figure
             {
-                Pivot = Pivot,
+                Pivot = Pivot.PerspectiveProjection(distanse, point),
                 Polygons = Polygons
                     .Select(polygon => polygon.PerspectiveProjection(distanse, point))
-                    .ToList()
+                    .ToList(),
+                RotationVector = RotationVector.PerspectiveProjection(distanse, point)
             };
         }
     }

@@ -28,25 +28,25 @@ namespace SDL_Lab1
             {
                 case Axis.Z:
                     vertex = new Vertex(
-                        (int) Math.Round(vertex.X*Math.Cos(angle) - vertex.Y*Math.Sin(angle)),
-                        (int) Math.Round(vertex.X*Math.Sin(angle) + vertex.Y*Math.Cos(angle)),
+                        Math.Round(vertex.X*Math.Cos(angle) - vertex.Y*Math.Sin(angle)),
+                        Math.Round(vertex.X*Math.Sin(angle) + vertex.Y*Math.Cos(angle)),
                         vertex.Z,
                         IsVisible
                     );
                     break;
                 case Axis.Y:
                     vertex = new Vertex(
-                        (int)Math.Round(vertex.X * Math.Cos(angle) + vertex.Z * Math.Sin(angle)),
+                        Math.Round(vertex.X * Math.Cos(angle) + vertex.Z * Math.Sin(angle)),
                         vertex.Y,
-                        (int)Math.Round(-vertex.X * Math.Sin(angle) + vertex.Z * Math.Cos(angle)),
+                        Math.Round(-vertex.X * Math.Sin(angle) + vertex.Z * Math.Cos(angle)),
                         IsVisible
                     );
                     break;
                 case Axis.X:
                     vertex = new Vertex(
                         vertex.X,
-                        (int)Math.Round(vertex.Y * Math.Cos(angle) - vertex.Z * Math.Sin(angle)),
-                        (int)Math.Round(vertex.Y * Math.Sin(angle) + vertex.Z * Math.Cos(angle)),
+                        Math.Round(vertex.Y * Math.Cos(angle) - vertex.Z * Math.Sin(angle)),
+                        Math.Round(vertex.Y * Math.Sin(angle) + vertex.Z * Math.Cos(angle)),
                         IsVisible
                     );
                     break;
@@ -57,13 +57,56 @@ namespace SDL_Lab1
             return vertex.Sum(point);
         }
 
+        public Vertex RotateByAngleAroundVector(double angle, Vertex rotationVector, Vertex pivot)
+        {
+            var vertex = Sum(pivot.Negotiate());
+
+            rotationVector = rotationVector.NormalizeVector();
+
+            var x = vertex.X * (Math.Cos(angle) + (1 - Math.Cos(angle))*rotationVector.X*rotationVector.X)
+                    + vertex.Y *((1 - Math.Cos(angle))*rotationVector.X*rotationVector.Y - Math.Sin(angle)*rotationVector.Z)
+                    + vertex.Z *((1 - Math.Cos(angle))*rotationVector.X*rotationVector.Z + Math.Sin(angle)*rotationVector.Y);
+
+            var y = vertex.X *((1 - Math.Cos(angle))*rotationVector.X*rotationVector.Y + Math.Sin(angle)*rotationVector.Z)
+                    + vertex.Y *(Math.Cos(angle) + (1 - Math.Cos(angle))*rotationVector.Y*rotationVector.Y)
+                    + vertex.Z *((1 - Math.Cos(angle))*rotationVector.Y*rotationVector.Z - Math.Sin(angle)*rotationVector.X);
+
+            var z = vertex.X *((1 - Math.Cos(angle))*rotationVector.X*rotationVector.Z - Math.Sin(angle)*rotationVector.Y)
+                    + vertex.Y *((1 - Math.Cos(angle))*rotationVector.Y*rotationVector.Z + Math.Sin(angle)*rotationVector.X)
+                    + vertex.Z *(Math.Cos(angle) + (1 - Math.Cos(angle))*rotationVector.Z*rotationVector.Z);
+
+            return new Vertex
+            {
+                IsVisible = IsVisible,
+                X = x,
+                Y = y,
+                Z = z
+            }.Sum(pivot);
+        }
+
+        public Vertex MoveByAxis(double delta, Axis axis)
+        {
+            switch (axis)
+            {
+                case Axis.X:
+                    return Sum(new Vertex(delta, 0, 0));
+                case Axis.Y:
+                    return Sum(new Vertex(0, delta, 0));
+                case Axis.Z:
+                    return Sum(new Vertex(0, 0, delta));
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(axis), axis, null);
+            }
+            
+        }
+
         public Vertex PerspectiveProjection(double distanse, Vertex pivot)
         {
             var vertex = Sum(pivot.Negotiate());
             vertex = new Vertex
             {
-                X = Math.Round(vertex.X/(vertex.Z/distanse)),
-                Y = Math.Round(vertex.Y/(vertex.Z/distanse)),
+                X = vertex.X/(vertex.Z/distanse),
+                Y = vertex.Y/(vertex.Z/distanse),
                 Z = vertex.Z,
                 IsVisible = IsVisible
             };
