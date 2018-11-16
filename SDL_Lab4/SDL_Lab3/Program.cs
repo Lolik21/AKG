@@ -319,8 +319,8 @@ namespace SDL_Lab1
                 RotationVector = new Vertex
                 {
                     X = 50,
-                    Y = -50,
-                    Z = -20+delta
+                    Y = 0,
+                    Z = 0+delta
                 }.Sum(center)
             };
         }
@@ -374,8 +374,8 @@ namespace SDL_Lab1
                 RotationVector = new Vertex
                 {
                     X = 25,
-                    Y = -25,
-                    Z = -10
+                    Y = 0,
+                    Z = 0
                 }.Sum(center)
             };
         }
@@ -579,7 +579,7 @@ namespace SDL_Lab1
 
             if (_showVector)
             {
-                SDL.SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+                SDL.SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
                 SDL.SDL_RenderDrawLine(renderer, (int)fig.Pivot.X, (int)fig.Pivot.Y, (int)fig.RotationVector.X,
                     (int)fig.RotationVector.Y);
             }
@@ -680,7 +680,8 @@ namespace SDL_Lab1
                             foreach (var vertex in po)
                             {
                                 var res = PointOnLeftOrRightSide(edge.Start, edge.End, vertex);
-                                if (res < 0) left++;
+                                if (res < -250) 
+                                    left++;
                             }
 
                             if (left == 0)
