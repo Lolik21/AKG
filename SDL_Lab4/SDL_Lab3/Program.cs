@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Messaging;
 using SDL2;
 
 namespace SDL_Lab1
@@ -13,6 +14,9 @@ namespace SDL_Lab1
         private static bool _showInvisible = false;
         private static bool _showNormals = false;
         private static bool _showNormalsInside = false;
+        private static bool _differentColor = false;
+        private static bool _showAxis = false;
+        private static bool _showVector = false;
 
         private static readonly (byte red, byte green, byte blue, byte alpha) RedColor = (255, 0, 0, 255);
         private static readonly (byte red, byte green, byte blue, byte alpha) GreenColor = (0, 255, 0, 255);
@@ -23,9 +27,12 @@ namespace SDL_Lab1
         private static double _xAngle = Math.PI / 4;
         private static double _yAngle = Math.PI / 4;
         private static double _zAngle = -Math.PI / 2;
+        private static double _vectorAngle = 0;
+
         private static int _dx = 0;
         private static int _dy = 0;
         private static int _dz = 0;
+
         private static int _d = -600;
         private static double Teta = 0;
         private static double Fi = 0;
@@ -305,7 +312,17 @@ namespace SDL_Lab1
             });
 
 
-            return new Figure(new Vertex(0, 0, 0+delta).Sum(center), polList);
+            return new Figure
+            {
+                Pivot = new Vertex(0, 0, 0+delta).Sum(center), 
+                Polygons = polList,
+                RotationVector = new Vertex
+                {
+                    X = 50,
+                    Y = 0,
+                    Z = 0+delta
+                }.Sum(center)
+            };
         }
 
         private static Figure InitAxis()
@@ -350,7 +367,17 @@ namespace SDL_Lab1
                 }
             };
 
-            return new Figure(new Vertex(0, 0, 0).Sum(center), new List<Polygon> {pol1, pol2, pol3});
+            return new Figure
+            {
+                Pivot = new Vertex(0, 0, 0).Sum(center),
+                Polygons = new List<Polygon> {pol1, pol2, pol3},
+                RotationVector = new Vertex
+                {
+                    X = 25,
+                    Y = 0,
+                    Z = 0
+                }.Sum(center)
+            };
         }
 
         private static bool SdlWindProc(SDL.SDL_Event sdlEvent)
@@ -436,6 +463,64 @@ namespace SDL_Lab1
                         case SDL.SDL_Keycode.SDLK_LEFT:
                             Fi -= RotatingSpeed;
                             break;
+                        case SDL.SDL_Keycode.SDLK_c:
+                            _differentColor = !_differentColor;
+                            break;
+                        case SDL.SDL_Keycode.SDLK_m:
+                            _showAxis = !_showAxis;
+                            break;
+                        case SDL.SDL_Keycode.SDLK_y:
+                            _vectorAngle += RotatingSpeed;
+                            break;
+                        case SDL.SDL_Keycode.SDLK_h:
+                            _vectorAngle -= RotatingSpeed;
+                            break;
+                        case SDL.SDL_Keycode.SDLK_v:
+                            _showVector = !_showVector;
+                            break;
+                        case SDL.SDL_Keycode.SDLK_l:
+                            _figure.RotationVector =
+                                _figure.RotationVector.RotateByAngleAndAxisAroundPoint(
+                                    -RotatingSpeed, 
+                                    Axis.Y,
+                                    _figure.Pivot);
+                            break;
+                        case SDL.SDL_Keycode.SDLK_PERIOD:
+                            _figure.RotationVector =
+                                _figure.RotationVector.RotateByAngleAndAxisAroundPoint(
+                                    RotatingSpeed,
+                                    Axis.Y,
+                                    _figure.Pivot);
+                            break;
+                        case SDL.SDL_Keycode.SDLK_COMMA:
+                            _figure.RotationVector =
+                                _figure.RotationVector.RotateByAngleAndAxisAroundPoint(
+                                    -RotatingSpeed,
+                                    Axis.X,
+                                    _figure.Pivot);
+                            break;
+                        case SDL.SDL_Keycode.SDLK_SLASH:
+                            _figure.RotationVector =
+                                _figure.RotationVector.RotateByAngleAndAxisAroundPoint(
+                                    RotatingSpeed,
+                                    Axis.X,
+                                    _figure.Pivot);
+                            break;
+                        case SDL.SDL_Keycode.SDLK_k:
+                            _figure.RotationVector =
+                                _figure.RotationVector.RotateByAngleAndAxisAroundPoint(
+                                    -RotatingSpeed,
+                                    Axis.Z,
+                                    _figure.Pivot);
+                            break;
+                        case SDL.SDL_Keycode.SDLK_SEMICOLON:
+                            _figure.RotationVector =
+                                _figure.RotationVector.RotateByAngleAndAxisAroundPoint(
+                                    RotatingSpeed,
+                                    Axis.Z,
+                                    _figure.Pivot);
+                            break;
+
                     }
                     break;
             }
@@ -454,7 +539,8 @@ namespace SDL_Lab1
             SDL.SDL_RenderClear(renderer);
             if (!(_d > 0 && _projection))
                 DrawFigures(renderer);
-            DrawAxis(renderer);
+            if(_showAxis)
+                DrawAxis(renderer);
             SDL.SDL_RenderPresent(renderer);
         }
 
@@ -471,9 +557,11 @@ namespace SDL_Lab1
             SDL.SDL_RenderFillRect(renderer, ref rect);
 
             var fig = _axis
+                .RotateByAngleAroundVector(_vectorAngle)
                 .RotateByAngleAndAxis(_xAngle, Axis.X)
                 .RotateByAngleAndAxis(_yAngle, Axis.Y)
-                .RotateByAngleAndAxis(_zAngle, Axis.Z);
+                .RotateByAngleAndAxis(_zAngle, Axis.Z)
+            ;
             var edges = fig.Edges;
             
             edges.Sort((edge, edge1) =>
@@ -488,12 +576,20 @@ namespace SDL_Lab1
                 SDL.SDL_SetRenderDrawColor(renderer, edge.Color.red, edge.Color.green, edge.Color.blue, edge.Color.alpha);
                 SDL.SDL_RenderDrawLine(renderer, (int)edge.Start.X, (int)edge.Start.Y, (int)edge.End.X, (int)edge.End.Y);
             }
+
+            if (_showVector)
+            {
+                SDL.SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                SDL.SDL_RenderDrawLine(renderer, (int)fig.Pivot.X, (int)fig.Pivot.Y, (int)fig.RotationVector.X,
+                    (int)fig.RotationVector.Y);
+            }
         }
 
         private static void DrawFigures(IntPtr renderer)
         {
             DrawedSet.Clear();
             var fig = _figure
+                .RotateByAngleAroundVector(_vectorAngle)
                 .RotateByAngleAndAxis(_xAngle, Axis.X)
                 .RotateByAngleAndAxis(_yAngle, Axis.Y)
                 .RotateByAngleAndAxis(_zAngle, Axis.Z)
@@ -517,24 +613,36 @@ namespace SDL_Lab1
 
             Draw(renderer, facePolys, true);
 
-            if (!_showInvisible) return;
+            if (_showInvisible)
+            {
+                var invizPolys = fig.Polygons
+                    .Where(polygon => polygon.IsVisible)
+                    .Where(polygon => ObserverVector.ScalarMultiply(polygon.NormVector()) < 0)
+                    .ToList();
 
-            var invizPolys = fig.Polygons
-                .Where(polygon => polygon.IsVisible)
-                .Where(polygon => ObserverVector.ScalarMultiply(polygon.NormVector()) < 0)
-                .ToList();
+                Draw(renderer, invizPolys, false);
+            }
 
-            Draw(renderer, invizPolys, false);
+            if (_showVector)
+            {
+                SDL.SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                SDL.SDL_RenderDrawLine(renderer, (int)fig.Pivot.X, (int)fig.Pivot.Y, (int)fig.RotationVector.X,
+                    (int)fig.RotationVector.Y);
+            }
         }
 
         private static void Draw(IntPtr renderer, List<Polygon> polys, bool isVisible)
         {
+            polys.Sort(Comparison);
             foreach (var polygon in polys)
             {
                 foreach (var edge in polygon.Edges.Where(edge => edge.IsVisible))
                 {
                     if(DrawedSet.Contains(edge.Number)) continue;
-                    SDL.SDL_SetRenderDrawColor(renderer, edge.Color.red, edge.Color.green, edge.Color.blue, edge.Color.alpha);
+                    if(_differentColor)
+                        SDL.SDL_SetRenderDrawColor(renderer, edge.Color.red, edge.Color.green, edge.Color.blue, edge.Color.alpha);
+                    else
+                        SDL.SDL_SetRenderDrawColor(renderer, edge.MainColor.red, edge.MainColor.green, edge.MainColor.blue, edge.MainColor.alpha);
                     if (isVisible)
                     {
                         var edgeCenterZ = edge.Center.Z;
@@ -572,7 +680,8 @@ namespace SDL_Lab1
                             foreach (var vertex in po)
                             {
                                 var res = PointOnLeftOrRightSide(edge.Start, edge.End, vertex);
-                                if (res < 0) left++;
+                                if (res < -250) 
+                                    left++;
                             }
 
                             if (left == 0)
@@ -676,6 +785,13 @@ namespace SDL_Lab1
             }
         }
 
+        private static int Comparison(Polygon polygon, Polygon polygon1)
+        {
+            if (polygon.Center.Z < polygon1.Center.Z)
+                return -1;
+            return Math.Abs(polygon.Center.Z - polygon1.Center.Z) < E ? 0 : 1;
+        }
+
         private static void DrawVisible(IntPtr renderer, Vertex p1, Vertex p2)
         {
             SDL.SDL_RenderDrawLine(renderer, (int)p1.X, (int)p1.Y, (int)p2.X, (int)p2.Y);
@@ -688,30 +804,30 @@ namespace SDL_Lab1
             var dashCount = Math.Ceiling(length / DashLength);
             var dt = 1 / dashCount;
 
-            var p1 = new SDL.SDL_Point
+            var p1 = new Vertex
             {
-                x = (int) startPoint.X,
-                y = (int) startPoint.Y
+                X = startPoint.X,
+                Y = startPoint.Y
             };
 
-            var p2 = new SDL.SDL_Point
+            var p2 = new Vertex
             {
-                x = (int) startPoint.X + (int) Math.Round(dt*(endPoint.X - startPoint.X)),
-                y = (int) startPoint.Y + (int) Math.Round(dt*(endPoint.Y - startPoint.Y))
+                X = startPoint.X + dt*(endPoint.X - startPoint.X),
+                Y = startPoint.Y + dt*(endPoint.Y - startPoint.Y)
             };
             
             for (var j = 0; j < dashCount; j += 2)
             {
-                SDL.SDL_RenderDrawLine(renderer, p1.x, p1.y, p2.x, p2.y);
-                p1 = new SDL.SDL_Point
+                SDL.SDL_RenderDrawLine(renderer, (int)p1.X, (int)p1.Y, (int)p2.X, (int)p2.Y);
+                p1 = new Vertex
                 {
-                    x = p1.x + (int)Math.Round(2 * dt * (endPoint.X - startPoint.X)),
-                    y = p1.y + (int)Math.Round(2 * dt * (endPoint.Y - startPoint.Y))
+                    X = p1.X + 2 * dt * (endPoint.X - startPoint.X),
+                    Y = p1.Y + 2 * dt * (endPoint.Y - startPoint.Y)
                 };
-                p2 = new SDL.SDL_Point
+                p2 = new Vertex
                 {
-                    x = p2.x + (int)Math.Round(2 * dt * (endPoint.X - startPoint.X)),
-                    y = p2.y + (int)Math.Round(2 * dt * (endPoint.Y - startPoint.Y))
+                    X = p2.X + 2 * dt * (endPoint.X - startPoint.X),
+                    Y = p2.Y + 2 * dt * (endPoint.Y - startPoint.Y)
                 };
             }
         }
@@ -901,8 +1017,8 @@ namespace SDL_Lab1
         {
             var result = new Vertex
             {
-                X = (int) (line.Start.X + (line.End.X - line.Start.X)*param),
-                Y = (int) (line.Start.Y + (line.End.Y - line.Start.Y)*param)
+                X = line.Start.X + (line.End.X - line.Start.X)*param,
+                Y = line.Start.Y + (line.End.Y - line.Start.Y)*param
             };
             return result;
         }

@@ -21,6 +21,7 @@ namespace SDL_Lab1
         public Vertex End { get; set; }
         public bool IsVisible { get; set; } = true;
         public (byte red, byte green, byte blue, byte alpha) Color { get; set; }
+        public (byte red, byte green, byte blue, byte alpha) MainColor { get; set; } = (0, 0, 0, 255);
 
         public List<Vertex> Vertexes => new List<Vertex>{Start, End};
 
@@ -30,6 +31,18 @@ namespace SDL_Lab1
             {
                 Start = Start.RotateByAngleAndAxisAroundPoint(angle, axis, point),
                 End = End.RotateByAngleAndAxisAroundPoint(angle, axis, point),
+                Color = Color,
+                IsVisible = IsVisible,
+                Number = Number
+            };
+        }
+
+        public Edge RotateEdgeByAngleAroundVector(double angle, Vertex vector, Vertex pivot)
+        {
+            return new Edge
+            {
+                Start = Start.RotateByAngleAroundVector(angle, vector, pivot),
+                End = End.RotateByAngleAroundVector(angle, vector, pivot),
                 Color = Color,
                 IsVisible = IsVisible,
                 Number = Number
@@ -50,21 +63,7 @@ namespace SDL_Lab1
 
         public Edge MoveByAxis(double delta, Axis axis)
         {
-            switch (axis)
-            {
-                case Axis.X:
-                    return new Edge(Start.Sum(new Vertex(delta, 0, 0)), End.Sum(new Vertex(delta, 0, 0)), Color, Number,
-                        IsVisible);
-                case Axis.Y:
-                    return new Edge(Start.Sum(new Vertex(0, delta, 0)), End.Sum(new Vertex(0, delta, 0)), Color, Number,
-                        IsVisible);
-                case Axis.Z:
-                    return new Edge(Start.Sum(new Vertex(0, 0, delta)), End.Sum(new Vertex(0, 0, delta)), Color, Number,
-                        IsVisible);
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(axis), axis, null);
-            }
-            
+            return new Edge(Start.MoveByAxis(delta, axis), End.MoveByAxis(delta, axis), Color, Number, IsVisible);
         }
 
         public Vertex Center => new Vertex((Start.X + End.X)/2, (Start.Y + End.Y)/2, (Start.Z + End.Z)/2);
