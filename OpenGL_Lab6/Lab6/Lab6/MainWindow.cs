@@ -109,5 +109,11 @@ namespace Lab6
             _eventAggregator.MouseUp(sender, e);
             GLControl.Invalidate();
         }
+
+        private void GLControl_DragDrop(object sender, DragEventArgs e)
+        {
+            _eventAggregator.DragDrop(sender, e);
+            GLControl.Invalidate();
+        }
     }
 }

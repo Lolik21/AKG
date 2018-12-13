@@ -30,10 +30,16 @@ namespace Core.Events
             OnMouseScroll?.Invoke(sender, scrollEventArgs);
         }
 
+        public void DragDrop(object sender, DragEventArgs e)
+        {
+            OnDragDrop?.Invoke(sender, e);
+        }
+
         public event EventHandler<KeyEventArgs> OnKeyDown;
         public event EventHandler<MouseEventArgs> OnMouseMove;
         public event EventHandler<MouseEventArgs> OnMouseDown;
         public event EventHandler<MouseEventArgs> OnMouseUp;
         public event EventHandler<MouseEventArgs> OnMouseScroll;
+        public event EventHandler<DragEventArgs> OnDragDrop;
     }
 }

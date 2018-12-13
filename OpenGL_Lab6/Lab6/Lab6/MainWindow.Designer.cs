@@ -46,6 +46,7 @@
             this.GLControl.TabIndex = 0;
             this.GLControl.ContextCreated += new System.EventHandler<OpenGL.GlControlEventArgs>(this.GLControl_ContextCreated);
             this.GLControl.Render += new System.EventHandler<OpenGL.GlControlEventArgs>(this.GLControl_Render);
+            this.GLControl.DragDrop += new System.Windows.Forms.DragEventHandler(this.GLControl_DragDrop);
             this.GLControl.KeyDown += new System.Windows.Forms.KeyEventHandler(this.GLControl_KeyDown);
             this.GLControl.MouseDown += new System.Windows.Forms.MouseEventHandler(this.GLControl_MouseDown);
             this.GLControl.MouseMove += new System.Windows.Forms.MouseEventHandler(this.GLControl_MouseMove);
